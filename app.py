@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 app = Flask(__name__)
 app.secret_key = "clave-secreta-colegio-2026"
 app.config["UPLOAD_FOLDER"] = "static/uploads"
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 ADMIN_USUARIO = "admin"
 ADMIN_CLAVE = "colegio123"
