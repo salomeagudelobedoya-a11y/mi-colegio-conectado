@@ -1,5 +1,6 @@
 import os
-import json
+import psycopg2
+import psycopg2.extras
 from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
@@ -10,36 +11,62 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 ADMIN_USUARIO = "admin"
 ADMIN_CLAVE = "colegio123"
 
-ARCHIVO_DATOS = "datos.json"
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
-def cargar_datos():
-    if os.path.exists(ARCHIVO_DATOS):
-        with open(ARCHIVO_DATOS, "r", encoding="utf-8") as f:
-            datos = json.load(f)
-            datos.setdefault("bullying", [])
-            return datos
-    return {"reportes": [], "noticias": [], "eventos": [], "ideas": [], "bullying": []}
+def get_conexion():
+    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
 
 
-def guardar_datos():
-    datos = {
-        "reportes": reportes,
-        "noticias": noticias,
-        "eventos": eventos,
-        "ideas": ideas,
-        "bullying": bullying
-    }
-    with open(ARCHIVO_DATOS, "w", encoding="utf-8") as f:
-        json.dump(datos, f, ensure_ascii=False, indent=2)
+def crear_tablas():
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS reportes (
+            id SERIAL PRIMARY KEY,
+            tipo TEXT,
+            lugar TEXT,
+            descripcion TEXT,
+            estado TEXT,
+            foto TEXT
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS noticias (
+            id SERIAL PRIMARY KEY,
+            titulo TEXT,
+            contenido TEXT
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS eventos (
+            id SERIAL PRIMARY KEY,
+            fecha TEXT,
+            titulo TEXT,
+            descripcion TEXT
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS ideas (
+            id SERIAL PRIMARY KEY,
+            texto TEXT,
+            votos INTEGER DEFAULT 0
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS bullying (
+            id SERIAL PRIMARY KEY,
+            grado TEXT,
+            descripcion TEXT,
+            estado TEXT
+        )
+    """)
+    conexion.commit()
+    cur.close()
+    conexion.close()
 
 
-datos_guardados = cargar_datos()
-reportes = datos_guardados["reportes"]
-noticias = datos_guardados["noticias"]
-eventos = datos_guardados["eventos"]
-ideas = datos_guardados["ideas"]
-bullying = datos_guardados["bullying"]
+crear_tablas()
 
 
 @app.route("/")
@@ -92,16 +119,15 @@ def reportar():
             ruta = os.path.join(app.config["UPLOAD_FOLDER"], nombre_foto)
             foto.save(ruta)
 
-        nuevo_id = len(reportes)
-        reportes.append({
-            "id": nuevo_id,
-            "tipo": tipo,
-            "lugar": lugar,
-            "descripcion": descripcion,
-            "estado": "Pendiente",
-            "foto": nombre_foto
-        })
-        guardar_datos()
+        conexion = get_conexion()
+        cur = conexion.cursor()
+        cur.execute(
+            "INSERT INTO reportes (tipo, lugar, descripcion, estado, foto) VALUES (%s, %s, %s, %s, %s)",
+            (tipo, lugar, descripcion, "Pendiente", nombre_foto)
+        )
+        conexion.commit()
+        cur.close()
+        conexion.close()
         return "<h1>Gracias por tu reporte!</h1><p>Ya lo registramos.</p><a href='/reportar'>Enviar otro</a>"
     return render_template("reportar.html")
 
@@ -109,6 +135,12 @@ def reportar():
 @app.route("/problemas")
 def problemas():
     es_admin = session.get("es_admin", False)
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("SELECT * FROM reportes ORDER BY id")
+    reportes = cur.fetchall()
+    cur.close()
+    conexion.close()
     return render_template("problemas.html", reportes=reportes, es_admin=es_admin)
 
 
@@ -117,11 +149,12 @@ def cambiar_estado(reporte_id):
     if not session.get("es_admin"):
         return redirect(url_for("problemas"))
     nuevo_estado = request.form["estado"]
-    for r in reportes:
-        if r["id"] == reporte_id:
-            r["estado"] = nuevo_estado
-            break
-    guardar_datos()
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("UPDATE reportes SET estado = %s WHERE id = %s", (nuevo_estado, reporte_id))
+    conexion.commit()
+    cur.close()
+    conexion.close()
     return redirect(url_for("problemas"))
 
 
@@ -129,23 +162,33 @@ def cambiar_estado(reporte_id):
 def borrar_reporte(reporte_id):
     if not session.get("es_admin"):
         return redirect(url_for("problemas"))
-    global reportes
-    reportes = [r for r in reportes if r["id"] != reporte_id]
-    guardar_datos()
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("DELETE FROM reportes WHERE id = %s", (reporte_id,))
+    conexion.commit()
+    cur.close()
+    conexion.close()
     return redirect(url_for("problemas"))
 
 
 @app.route("/calendario", methods=["GET", "POST"])
 def calendario():
     es_admin = session.get("es_admin", False)
+    conexion = get_conexion()
+    cur = conexion.cursor()
     if request.method == "POST" and es_admin:
         fecha = request.form["fecha"]
         titulo = request.form["titulo"]
         descripcion = request.form["descripcion"]
-        nuevo_id = len(eventos)
-        eventos.append({"id": nuevo_id, "fecha": fecha, "titulo": titulo, "descripcion": descripcion})
-        eventos.sort(key=lambda e: e["fecha"])
-        guardar_datos()
+        cur.execute(
+            "INSERT INTO eventos (fecha, titulo, descripcion) VALUES (%s, %s, %s)",
+            (fecha, titulo, descripcion)
+        )
+        conexion.commit()
+    cur.execute("SELECT * FROM eventos ORDER BY fecha")
+    eventos = cur.fetchall()
+    cur.close()
+    conexion.close()
     return render_template("calendario.html", eventos=eventos, es_admin=es_admin)
 
 
@@ -153,21 +196,32 @@ def calendario():
 def borrar_evento(evento_id):
     if not session.get("es_admin"):
         return redirect(url_for("calendario"))
-    global eventos
-    eventos = [e for e in eventos if e["id"] != evento_id]
-    guardar_datos()
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("DELETE FROM eventos WHERE id = %s", (evento_id,))
+    conexion.commit()
+    cur.close()
+    conexion.close()
     return redirect(url_for("calendario"))
 
 
 @app.route("/noticias", methods=["GET", "POST"])
 def pagina_noticias():
     es_admin = session.get("es_admin", False)
+    conexion = get_conexion()
+    cur = conexion.cursor()
     if request.method == "POST" and es_admin:
         titulo = request.form["titulo"]
         contenido = request.form["contenido"]
-        nuevo_id = len(noticias)
-        noticias.insert(0, {"id": nuevo_id, "titulo": titulo, "contenido": contenido})
-        guardar_datos()
+        cur.execute(
+            "INSERT INTO noticias (titulo, contenido) VALUES (%s, %s)",
+            (titulo, contenido)
+        )
+        conexion.commit()
+    cur.execute("SELECT * FROM noticias ORDER BY id DESC")
+    noticias = cur.fetchall()
+    cur.close()
+    conexion.close()
     return render_template("noticias.html", noticias=noticias, es_admin=es_admin)
 
 
@@ -175,9 +229,12 @@ def pagina_noticias():
 def borrar_noticia(noticia_id):
     if not session.get("es_admin"):
         return redirect(url_for("pagina_noticias"))
-    global noticias
-    noticias = [n for n in noticias if n["id"] != noticia_id]
-    guardar_datos()
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("DELETE FROM noticias WHERE id = %s", (noticia_id,))
+    conexion.commit()
+    cur.close()
+    conexion.close()
     return redirect(url_for("pagina_noticias"))
 
 
@@ -186,13 +243,17 @@ def pagina_ideas():
     es_admin = session.get("es_admin", False)
     clave_votos = "ideas_votadas_admin" if es_admin else "ideas_votadas_estudiante"
     ideas_votadas = session.get(clave_votos, [])
+    conexion = get_conexion()
+    cur = conexion.cursor()
     if request.method == "POST":
         texto = request.form["idea"]
-        nuevo_id = len(ideas)
-        ideas.append({"id": nuevo_id, "texto": texto, "votos": 0})
-        guardar_datos()
-    ideas_ordenadas = sorted(ideas, key=lambda i: i["votos"], reverse=True)
-    return render_template("ideas.html", ideas=ideas_ordenadas, es_admin=es_admin, ideas_votadas=ideas_votadas)
+        cur.execute("INSERT INTO ideas (texto, votos) VALUES (%s, 0)", (texto,))
+        conexion.commit()
+    cur.execute("SELECT * FROM ideas ORDER BY votos DESC, id")
+    ideas = cur.fetchall()
+    cur.close()
+    conexion.close()
+    return render_template("ideas.html", ideas=ideas, es_admin=es_admin, ideas_votadas=ideas_votadas)
 
 
 @app.route("/ideas/votar/<int:idea_id>", methods=["POST"])
@@ -201,13 +262,14 @@ def votar_idea(idea_id):
     clave_votos = "ideas_votadas_admin" if es_admin else "ideas_votadas_estudiante"
     ideas_votadas = session.get(clave_votos, [])
     if idea_id not in ideas_votadas:
-        for i in ideas:
-            if i["id"] == idea_id:
-                i["votos"] += 1
-                break
+        conexion = get_conexion()
+        cur = conexion.cursor()
+        cur.execute("UPDATE ideas SET votos = votos + 1 WHERE id = %s", (idea_id,))
+        conexion.commit()
+        cur.close()
+        conexion.close()
         ideas_votadas.append(idea_id)
         session[clave_votos] = ideas_votadas
-        guardar_datos()
     return redirect(url_for("pagina_ideas"))
 
 
@@ -215,21 +277,32 @@ def votar_idea(idea_id):
 def borrar_idea(idea_id):
     if not session.get("es_admin"):
         return redirect(url_for("pagina_ideas"))
-    global ideas
-    ideas = [i for i in ideas if i["id"] != idea_id]
-    guardar_datos()
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("DELETE FROM ideas WHERE id = %s", (idea_id,))
+    conexion.commit()
+    cur.close()
+    conexion.close()
     return redirect(url_for("pagina_ideas"))
 
 
 @app.route("/bullying", methods=["GET", "POST"])
 def pagina_bullying():
     es_admin = session.get("es_admin", False)
+    conexion = get_conexion()
+    cur = conexion.cursor()
     if request.method == "POST":
         grado = request.form["grado"]
         descripcion = request.form["descripcion"]
-        nuevo_id = len(bullying)
-        bullying.append({"id": nuevo_id, "grado": grado, "descripcion": descripcion, "estado": "Pendiente"})
-        guardar_datos()
+        cur.execute(
+            "INSERT INTO bullying (grado, descripcion, estado) VALUES (%s, %s, %s)",
+            (grado, descripcion, "Pendiente")
+        )
+        conexion.commit()
+    cur.execute("SELECT * FROM bullying ORDER BY id")
+    bullying = cur.fetchall()
+    cur.close()
+    conexion.close()
     return render_template("bullying.html", bullying=bullying, es_admin=es_admin)
 
 
@@ -238,11 +311,12 @@ def cambiar_estado_bullying(reporte_id):
     if not session.get("es_admin"):
         return redirect(url_for("pagina_bullying"))
     nuevo_estado = request.form["estado"]
-    for b in bullying:
-        if b["id"] == reporte_id:
-            b["estado"] = nuevo_estado
-            break
-    guardar_datos()
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("UPDATE bullying SET estado = %s WHERE id = %s", (nuevo_estado, reporte_id))
+    conexion.commit()
+    cur.close()
+    conexion.close()
     return redirect(url_for("pagina_bullying"))
 
 
@@ -250,9 +324,12 @@ def cambiar_estado_bullying(reporte_id):
 def borrar_bullying(reporte_id):
     if not session.get("es_admin"):
         return redirect(url_for("pagina_bullying"))
-    global bullying
-    bullying = [b for b in bullying if b["id"] != reporte_id]
-    guardar_datos()
+    conexion = get_conexion()
+    cur = conexion.cursor()
+    cur.execute("DELETE FROM bullying WHERE id = %s", (reporte_id,))
+    conexion.commit()
+    cur.close()
+    conexion.close()
     return redirect(url_for("pagina_bullying"))
 
 
