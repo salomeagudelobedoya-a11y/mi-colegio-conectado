@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ver problemas</title>
+    <title>Bullying</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -19,36 +19,38 @@
 
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
 
-    <h1>&#128203; Ver problemas</h1>
+    <h1>&#128683; Reportar Bullying</h1>
 
-    {% if reportes|length == 0 %}
+    <form action="/bullying" method="POST">
+        <label for="grado">Grado:</label><br>
+        <input type="text" name="grado" id="grado"><br><br>
+
+        <label for="descripcion">Descripcion:</label><br>
+        <textarea name="descripcion" id="descripcion" rows="4" cols="40"></textarea><br><br>
+
+        <button type="submit">Enviar</button>
+    </form>
+
+    <hr>
+
+    {% if bullying|length == 0 %}
         <p style="text-align:center;">Todavia no hay reportes.</p>
     {% else %}
         <table style="margin:auto; border-collapse: collapse;" border="1" cellpadding="10">
             <tr>
-                <th>Tipo</th>
-                <th>Lugar</th>
+                <th>Grado</th>
                 <th>Descripcion</th>
-                <th>Foto</th>
                 <th>Estado</th>
                 {% if es_admin %}<th>Cambiar estado</th><th>Borrar</th>{% endif %}
             </tr>
-            {% for r in reportes %}
+            {% for b in bullying %}
             <tr>
-                <td>{{ r.tipo }}</td>
-                <td>{{ r.lugar }}</td>
-                <td>{{ r.descripcion }}</td>
+                <td>{{ b.grado }}</td>
+                <td>{{ b.descripcion }}</td>
                 <td>
-                    {% if r.foto %}
-                        <img src="{{ url_for('static', filename='uploads/' + r.foto) }}" width="100">
-                    {% else %}
-                        Sin foto
-                    {% endif %}
-                </td>
-                <td>
-                    {% if r.estado == "Pendiente" %}
+                    {% if b.estado == "Pendiente" %}
                         &#128308; Pendiente
-                    {% elif r.estado == "En proceso" %}
+                    {% elif b.estado == "En proceso" %}
                         &#128993; En proceso
                     {% else %}
                         &#128994; Solucionado
@@ -56,21 +58,21 @@
                 </td>
                 {% if es_admin %}
                 <td>
-                    <form class="form-mini" action="/problemas/estado/{{ r.id }}" method="POST">
+                    <form class="form-mini" action="/bullying/estado/{{ b.id }}" method="POST">
                         <input type="hidden" name="estado" value="Pendiente">
                         <button type="submit">&#128308; Pendiente</button>
                     </form>
-                    <form class="form-mini" action="/problemas/estado/{{ r.id }}" method="POST">
+                    <form class="form-mini" action="/bullying/estado/{{ b.id }}" method="POST">
                         <input type="hidden" name="estado" value="En proceso">
                         <button type="submit">&#128993; En proceso</button>
                     </form>
-                    <form class="form-mini" action="/problemas/estado/{{ r.id }}" method="POST">
+                    <form class="form-mini" action="/bullying/estado/{{ b.id }}" method="POST">
                         <input type="hidden" name="estado" value="Solucionado">
                         <button type="submit">&#128994; Solucionado</button>
                     </form>
                 </td>
                 <td>
-                    <form class="form-mini" action="/problemas/borrar/{{ r.id }}" method="POST" onsubmit="return confirm('Seguro que quieres borrar este reporte?');">
+                    <form class="form-mini" action="/bullying/borrar/{{ b.id }}" method="POST" onsubmit="return confirm('Seguro que quieres borrar este reporte?');">
                         <button type="submit">&#128465; Borrar</button>
                     </form>
                 </td>

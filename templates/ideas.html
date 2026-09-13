@@ -13,8 +13,8 @@
         <a href="/calendario">Calendario</a>
         <a href="/noticias">Noticias</a>
         <a href="/ideas">Ideas de estudiantes</a>
+        <a href="/bullying">Bullying</a>
         <a href="/logout">Cerrar sesion</a>
-    </nav>
     </nav>
 
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
@@ -36,9 +36,18 @@
         {% for i in ideas %}
         <div class="tarjeta">
             <p>{{ i.texto }}</p>
-            <form action="/ideas/votar/{{ i.id }}" method="POST">
-                <button type="submit">&#128077; Votar ({{ i.votos }})</button>
+            {% if i.id in ideas_votadas %}
+                <p>&#128077; {{ i.votos }} votos</p>
+            {% else %}
+                <form action="/ideas/votar/{{ i.id }}" method="POST">
+                    <button type="submit">&#128077; Votar ({{ i.votos }})</button>
+                </form>
+            {% endif %}
+            {% if es_admin %}
+            <form class="form-mini" action="/ideas/borrar/{{ i.id }}" method="POST" onsubmit="return confirm('Seguro que quieres borrar esta idea?');">
+                <button type="submit">&#128465; Borrar</button>
             </form>
+            {% endif %}
         </div>
         {% endfor %}
     {% endif %}

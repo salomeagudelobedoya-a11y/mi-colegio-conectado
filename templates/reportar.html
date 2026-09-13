@@ -13,9 +13,8 @@
         <a href="/calendario">Calendario</a>
         <a href="/noticias">Noticias</a>
         <a href="/ideas">Ideas de estudiantes</a>
+        <a href="/bullying">Bullying</a>
         <a href="/logout">Cerrar sesion</a>
-    </nav>
-
     </nav>
 
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
@@ -25,17 +24,17 @@
     <form action="/reportar" method="POST" enctype="multipart/form-data">
         <label for="tipo">Tipo de problema:</label><br>
         <select name="tipo" id="tipo">
-            <option value="Luces danadas">Luces danadas</option>
-            <option value="Banos en mal estado">Banos en mal estado</option>
+            <option value="Luces dañadas">Luces dañadas</option>
+            <option value="Baños en mal estado">Baños en mal estado</option>
             <option value="Basura">Basura</option>
-            <option value="Pupitres danados">Pupitres danados</option>
+            <option value="Pupitres dañados">Pupitres dañados</option>
             <option value="Otro">Otro</option>
         </select><br><br>
 
         <label for="lugar">Lugar:</label><br>
         <input type="text" name="lugar" id="lugar"><br><br>
 
-        <label for="descripcion">Descripcion:</label><br>
+        <label for="descripcion">Descripción:</label><br>
         <textarea name="descripcion" id="descripcion" rows="4" cols="40"></textarea><br><br>
 
         <label for="foto">Foto (opcional):</label><br>
