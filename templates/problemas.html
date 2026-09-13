@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ver problemas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/inicio">Inicio</a>
+        <a href="/reportar">Reportar problema</a>
+        <a href="/problemas">Ver problemas</a>
+        <a href="/calendario">Calendario</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/ideas">Ideas de estudiantes</a>
+        <a href="/logout">Cerrar sesion</a>
+    </nav>
+
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
+
+    <h1>&#128203; Ver problemas</h1>
+
+    {% if reportes|length == 0 %}
+        <p style="text-align:center;">Todavia no hay reportes.</p>
+    {% else %}
+        <table style="margin:auto; border-collapse: collapse;" border="1" cellpadding="10">
+            <tr>
+                <th>Tipo</th>
+                <th>Lugar</th>
+                <th>Descripcion</th>
+                <th>Foto</th>
+                <th>Estado</th>
+                {% if es_admin %}<th>Cambiar estado</th><th>Borrar</th>{% endif %}
+            </tr>
+            {% for r in reportes %}
+            <tr>
+                <td>{{ r.tipo }}</td>
+                <td>{{ r.lugar }}</td>
+                <td>{{ r.descripcion }}</td>
+                <td>
+                    {% if r.foto %}
+                        <img src="{{ url_for('static', filename='uploads/' + r.foto) }}" width="100">
+                    {% else %}
+                        Sin foto
+                    {% endif %}
+                </td>
+                <td>
+                    {% if r.estado == "Pendiente" %}
+                        &#128308; Pendiente
+                    {% elif r.estado == "En proceso" %}
+                        &#128993; En proceso
+                    {% else %}
+                        &#128994; Solucionado
+                    {% endif %}
+                </td>
+                {% if es_admin %}
+                <td>
+                    <form class="form-mini" action="/problemas/estado/{{ r.id }}" method="POST">
+                        <input type="hidden" name="estado" value="Pendiente">
+                        <button type="submit">&#128308; Pendiente</button>
+                    </form>
+                    <form class="form-mini" action="/problemas/estado/{{ r.id }}" method="POST">
+                        <input type="hidden" name="estado" value="En proceso">
+                        <button type="submit">&#128993; En proceso</button>
+                    </form>
+                    <form class="form-mini" action="/problemas/estado/{{ r.id }}" method="POST">
+                        <input type="hidden" name="estado" value="Solucionado">
+                        <button type="submit">&#128994; Solucionado</button>
+                    </form>
+                </td>
+                <td>
+                    <form class="form-mini" action="/problemas/borrar/{{ r.id }}" method="POST" onsubmit="return confirm('Seguro que quieres borrar este reporte?');">
+                        <button type="submit">&#128465; Borrar</button>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>

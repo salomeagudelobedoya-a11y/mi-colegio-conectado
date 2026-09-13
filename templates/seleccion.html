@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Colegio Conectado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
+
+    <h1>&#127979; Mi Colegio Conectado</h1>
+    <p>Ingresa como:</p>
+
+    <div class="opciones-inicio">
+        <a href="/estudiante">&#127891; Estudiante</a>
+        <a href="/login">&#128100; Administrador</a>
+    </div>
+</body>
+</html>

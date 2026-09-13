@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calendario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/inicio">Inicio</a>
+        <a href="/reportar">Reportar problema</a>
+        <a href="/problemas">Ver problemas</a>
+        <a href="/calendario">Calendario</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/ideas">Ideas de estudiantes</a>
+        <a href="/logout">Cerrar sesion</a>
+    </nav>
+
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
+
+    <h1>&#128197; Calendario</h1>
+
+    {% if es_admin %}
+    <form action="/calendario" method="POST" style="text-align:center;">
+        <label for="fecha">Fecha:</label><br>
+        <input type="date" name="fecha" id="fecha"><br><br>
+
+        <label for="titulo">Nombre del evento:</label><br>
+        <input type="text" name="titulo" id="titulo"><br><br>
+
+        <label for="descripcion">Descripcion:</label><br>
+        <textarea name="descripcion" id="descripcion" rows="3" cols="40"></textarea><br><br>
+
+        <button type="submit">Agregar evento</button>
+    </form>
+    {% endif %}
+
+    <hr>
+
+    {% if eventos|length == 0 %}
+        <p style="text-align:center;">Todavia no hay eventos.</p>
+    {% else %}
+        <table style="margin:auto; border-collapse: collapse;" border="1" cellpadding="10">
+            <tr>
+                <th>Fecha</th>
+                <th>Evento</th>
+                <th>Descripcion</th>
+                {% if es_admin %}<th>Borrar</th>{% endif %}
+            </tr>
+            {% for e in eventos %}
+            <tr>
+                <td>{{ e.fecha }}</td>
+                <td>{{ e.titulo }}</td>
+                <td>{{ e.descripcion }}</td>
+                {% if es_admin %}
+                <td>
+                    <form class="form-mini" action="/calendario/borrar/{{ e.id }}" method="POST" onsubmit="return confirm('Seguro que quieres borrar este evento?');">
+                        <button type="submit">&#128465; Borrar</button>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>

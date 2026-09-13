@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar sesion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/inicio">Inicio</a>
+        <a href="/reportar">Reportar problema</a>
+        <a href="/problemas">Ver problemas</a>
+        <a href="/calendario">Calendario</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/ideas">Ideas de estudiantes</a>
+    </nav>
+
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
+
+    <h1>&#128274; Iniciar sesion (Administrador)</h1>
+
+    {% if error %}
+        <p style="text-align:center; color:red;">{{ error }}</p>
+    {% endif %}
+
+    <form action="/login" method="POST">
+        <label for="usuario">Usuario:</label><br>
+        <input type="text" name="usuario" id="usuario"><br><br>
+
+        <label for="clave">Clave:</label><br>
+        <input type="password" name="clave" id="clave"><br><br>
+
+        <button type="submit">Entrar</button>
+    </form>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

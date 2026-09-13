@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ideas de estudiantes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/inicio">Inicio</a>
+        <a href="/reportar">Reportar problema</a>
+        <a href="/problemas">Ver problemas</a>
+        <a href="/calendario">Calendario</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/ideas">Ideas de estudiantes</a>
+        <a href="/logout">Cerrar sesion</a>
+    </nav>
+    </nav>
+
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
+
+    <h1>&#128161; Ideas de estudiantes</h1>
+
+    <form action="/ideas" method="POST" style="text-align:center;">
+        <label for="idea">Tu idea:</label><br>
+        <textarea name="idea" id="idea" rows="3" cols="40"></textarea><br><br>
+
+        <button type="submit">Enviar idea</button>
+    </form>
+
+    <hr>
+
+    {% if ideas|length == 0 %}
+        <p style="text-align:center;">Todavia no hay ideas.</p>
+    {% else %}
+        {% for i in ideas %}
+        <div class="tarjeta">
+            <p>{{ i.texto }}</p>
+            <form action="/ideas/votar/{{ i.id }}" method="POST">
+                <button type="submit">&#128077; Votar ({{ i.votos }})</button>
+            </form>
+        </div>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

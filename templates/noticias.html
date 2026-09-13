@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Noticias</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/inicio">Inicio</a>
+        <a href="/reportar">Reportar problema</a>
+        <a href="/problemas">Ver problemas</a>
+        <a href="/calendario">Calendario</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/ideas">Ideas de estudiantes</a>
+        <a href="/logout">Cerrar sesion</a>
+    </nav>
+
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo del colegio" class="logo-flotante">
+
+    <h1>&#128226; Noticias</h1>
+
+    {% if es_admin %}
+    <form action="/noticias" method="POST" style="text-align:center;">
+        <label for="titulo">Titulo:</label><br>
+        <input type="text" name="titulo" id="titulo"><br><br>
+
+        <label for="contenido">Contenido:</label><br>
+        <textarea name="contenido" id="contenido" rows="3" cols="40"></textarea><br><br>
+
+        <button type="submit">Publicar noticia</button>
+    </form>
+    {% endif %}
+
+    <hr>
+
+    {% if noticias|length == 0 %}
+        <p style="text-align:center;">Todavia no hay noticias.</p>
+    {% else %}
+        {% for n in noticias %}
+        <div class="tarjeta">
+            <h3>{{ n.titulo }}</h3>
+            <p>{{ n.contenido }}</p>
+            {% if es_admin %}
+            <form class="form-mini" action="/noticias/borrar/{{ n.id }}" method="POST" onsubmit="return confirm('Seguro que quieres borrar esta noticia?');">
+                <button type="submit">&#128465; Borrar</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>
