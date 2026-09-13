@@ -1,17 +1,19 @@
 import os
 import psycopg2
 import psycopg2.extras
+import cloudinary
+import cloudinary.uploader
 from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
 app.secret_key = "clave-secreta-colegio-2026"
-app.config["UPLOAD_FOLDER"] = "static/uploads"
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 ADMIN_USUARIO = "admin"
 ADMIN_CLAVE = "colegio123"
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
+
+cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL"))
 
 
 def get_conexion():
@@ -113,17 +115,16 @@ def reportar():
         descripcion = request.form["descripcion"]
 
         foto = request.files.get("foto")
-        nombre_foto = None
+        url_foto = None
         if foto and foto.filename != "":
-            nombre_foto = foto.filename
-            ruta = os.path.join(app.config["UPLOAD_FOLDER"], nombre_foto)
-            foto.save(ruta)
+            resultado = cloudinary.uploader.upload(foto)
+            url_foto = resultado["secure_url"]
 
         conexion = get_conexion()
         cur = conexion.cursor()
         cur.execute(
             "INSERT INTO reportes (tipo, lugar, descripcion, estado, foto) VALUES (%s, %s, %s, %s, %s)",
-            (tipo, lugar, descripcion, "Pendiente", nombre_foto)
+            (tipo, lugar, descripcion, "Pendiente", url_foto)
         )
         conexion.commit()
         cur.close()
