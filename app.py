@@ -1,35 +1,19 @@
 import os
 import psycopg2
 import psycopg2.extras
-import cloudinary
-import cloudinary.uploader
 from flask import Flask, render_template, request, redirect, url_for, session
 
-# ------------------------------------------------------------------------------
-# Configuración Principal de la Aplicación
-# ------------------------------------------------------------------------------
 app = Flask(__name__)
 app.secret_key = "clave-secreta-colegio-2026"
+app.config["UPLOAD_FOLDER"] = "static/uploads"
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 ADMIN_USUARIO = "admin"
 ADMIN_CLAVE = "colegio123"
 
-# Configuración de Base de Datos
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# CÓDIGO CORRECTO
-import os
-import cloudinary
-import cloudinary.uploader
 
-# Opción recomendada: parsear la variable usando la función de cloudinary
-cloudinary.config(
-    cloudinary_url=os.environ.get("CLOUDINARY_URL"),
-    secure=True
-)
-# ------------------------------------------------------------------------------
-# Funciones Auxiliares para la Base de Datos
-# ------------------------------------------------------------------------------
 def get_conexion():
     return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
 
@@ -82,12 +66,9 @@ def crear_tablas():
     conexion.close()
 
 
-# Inicializar tablas al arrancar el servidor
 crear_tablas()
 
-# ------------------------------------------------------------------------------
-# Rutas Principales y Autenticación
-# ------------------------------------------------------------------------------
+
 @app.route("/")
 def seleccion():
     return render_template("seleccion.html")
@@ -123,9 +104,7 @@ def logout():
     session.pop("es_admin", None)
     return redirect(url_for("seleccion"))
 
-# ------------------------------------------------------------------------------
-# Sección: Reportes con Imagen (Cloudinary)
-# ------------------------------------------------------------------------------
+
 @app.route("/reportar", methods=["GET", "POST"])
 def reportar():
     if request.method == "POST":
@@ -134,21 +113,22 @@ def reportar():
         descripcion = request.form["descripcion"]
 
         foto = request.files.get("foto")
-        url_foto = None
+        nombre_foto = None
         if foto and foto.filename != "":
-            resultado = cloudinary.uploader.upload(foto)
-            url_foto = resultado.get("secure_url")
+            nombre_foto = foto.filename
+            ruta = os.path.join(app.config["UPLOAD_FOLDER"], nombre_foto)
+            foto.save(ruta)
 
         conexion = get_conexion()
         cur = conexion.cursor()
         cur.execute(
             "INSERT INTO reportes (tipo, lugar, descripcion, estado, foto) VALUES (%s, %s, %s, %s, %s)",
-            (tipo, lugar, descripcion, "Pendiente", url_foto)
+            (tipo, lugar, descripcion, "Pendiente", nombre_foto)
         )
         conexion.commit()
         cur.close()
         conexion.close()
-        return "<h1>¡Gracias por tu reporte!</h1><p>Ya lo registramos.</p><a href='/reportar'>Enviar otro</a>"
+        return "<h1>Gracias por tu reporte!</h1><p>Ya lo registramos.</p><a href='/reportar'>Enviar otro</a>"
     return render_template("reportar.html")
 
 
@@ -190,9 +170,7 @@ def borrar_reporte(reporte_id):
     conexion.close()
     return redirect(url_for("problemas"))
 
-# ------------------------------------------------------------------------------
-# Sección: Calendario de Eventos
-# ------------------------------------------------------------------------------
+
 @app.route("/calendario", methods=["GET", "POST"])
 def calendario():
     es_admin = session.get("es_admin", False)
@@ -226,9 +204,7 @@ def borrar_evento(evento_id):
     conexion.close()
     return redirect(url_for("calendario"))
 
-# ------------------------------------------------------------------------------
-# Sección: Noticias
-# ------------------------------------------------------------------------------
+
 @app.route("/noticias", methods=["GET", "POST"])
 def pagina_noticias():
     es_admin = session.get("es_admin", False)
@@ -261,9 +237,7 @@ def borrar_noticia(noticia_id):
     conexion.close()
     return redirect(url_for("pagina_noticias"))
 
-# ------------------------------------------------------------------------------
-# Sección: Buzón de Ideas y Votaciones
-# ------------------------------------------------------------------------------
+
 @app.route("/ideas", methods=["GET", "POST"])
 def pagina_ideas():
     es_admin = session.get("es_admin", False)
@@ -311,9 +285,7 @@ def borrar_idea(idea_id):
     conexion.close()
     return redirect(url_for("pagina_ideas"))
 
-# ------------------------------------------------------------------------------
-# Sección: Reportes de Bullying
-# ------------------------------------------------------------------------------
+
 @app.route("/bullying", methods=["GET", "POST"])
 def pagina_bullying():
     es_admin = session.get("es_admin", False)
@@ -361,8 +333,5 @@ def borrar_bullying(reporte_id):
     return redirect(url_for("pagina_bullying"))
 
 
-# ------------------------------------------------------------------------------
-# Ejecución en Local
-# ------------------------------------------------------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
