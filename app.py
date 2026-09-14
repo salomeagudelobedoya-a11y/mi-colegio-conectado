@@ -17,12 +17,16 @@ ADMIN_CLAVE = "colegio123"
 # Configuración de Base de Datos
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# Configuración de Cloudinary usando la variable de entorno CLOUDINARY_URL
+# CÓDIGO CORRECTO
+import os
+import cloudinary
+import cloudinary.uploader
+
+# Opción recomendada: parsear la variable usando la función de cloudinary
 cloudinary.config(
-    os.environ.get("CLOUDINARY_URL"),
+    cloudinary_url=os.environ.get("CLOUDINARY_URL"),
     secure=True
 )
-
 # ------------------------------------------------------------------------------
 # Funciones Auxiliares para la Base de Datos
 # ------------------------------------------------------------------------------
