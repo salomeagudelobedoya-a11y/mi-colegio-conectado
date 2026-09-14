@@ -12,13 +12,13 @@ ADMIN_USUARIO = "admin"
 ADMIN_CLAVE = "colegio123"
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
+import os
+import cloudinary
+
 cloudinary.config(
-    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.environ.get("CLOUDINARY_API_KEY"),
-    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    cloudinary_url=os.environ.get("CLOUDINARY_URL"),
     secure=True
 )
-
 
 def get_conexion():
     return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
