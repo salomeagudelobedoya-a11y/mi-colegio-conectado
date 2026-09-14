@@ -13,7 +13,7 @@ ADMIN_CLAVE = "colegio123"
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL"))
+cloudinary.config(secure=True)
 
 
 def get_conexion():
