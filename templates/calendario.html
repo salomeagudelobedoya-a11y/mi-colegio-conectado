@@ -41,7 +41,8 @@
     {% if eventos|length == 0 %}
         <p style="text-align:center;">Todavia no hay eventos.</p>
     {% else %}
-        <table style="margin:auto; border-collapse: collapse;" border="1" cellpadding="10">
+        <div class="tabla-scroll">
+        <table border="1" cellpadding="10">
             <tr>
                 <th>Fecha</th>
                 <th>Evento</th>
@@ -63,6 +64,7 @@
             </tr>
             {% endfor %}
         </table>
+        </div>
     {% endif %}
 </body>
 </html>
