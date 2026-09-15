@@ -36,7 +36,8 @@
     {% if bullying|length == 0 %}
         <p style="text-align:center;">Todavia no hay reportes.</p>
     {% else %}
-        <table style="margin:auto; border-collapse: collapse;" border="1" cellpadding="10">
+        <div class="tabla-scroll">
+        <table border="1" cellpadding="10">
             <tr>
                 <th>Grado</th>
                 <th>Descripcion</th>
@@ -80,6 +81,7 @@
             </tr>
             {% endfor %}
         </table>
+        </div>
     {% endif %}
 </body>
 </html>
