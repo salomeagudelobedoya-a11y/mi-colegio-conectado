@@ -12,7 +12,7 @@ body {
 
 nav {
     background-color: #4b2e2e;
-    padding: 15px 25px;
+    padding: 12px 15px;
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
@@ -21,9 +21,10 @@ nav {
 nav a {
     color: white;
     text-decoration: none;
-    padding: 8px 14px;
+    padding: 8px 12px;
     border-radius: 6px;
     font-weight: bold;
+    font-size: 14px;
     transition: background-color 0.2s;
 }
 
@@ -35,11 +36,14 @@ h1 {
     color: #4b2e2e;
     text-align: center;
     margin-top: 20px;
+    font-size: 1.6em;
+    padding: 0 10px;
 }
 
 p {
     text-align: center;
     font-size: 18px;
+    padding: 0 15px;
 }
 
 hr {
@@ -52,9 +56,10 @@ hr {
 /* Formularios */
 form {
     max-width: 500px;
+    width: 90%;
     margin: 20px auto;
     background: white;
-    padding: 25px;
+    padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
@@ -70,25 +75,28 @@ form input[type="date"],
 form select,
 form textarea {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
     margin-bottom: 15px;
     font-family: inherit;
+    font-size: 16px;
 }
 
 form input[type="file"] {
     margin-bottom: 15px;
+    width: 100%;
 }
 
 button {
     background-color: #4b2e2e;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 12px 20px;
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
+    font-size: 15px;
     transition: background-color 0.2s;
 }
 
@@ -96,7 +104,7 @@ button:hover {
     background-color: #6b4444;
 }
 
-/* Tablas */
+/* Tablas: contenedor con scroll horizontal en pantallas chicas */
 table {
     margin: 20px auto;
     background: white;
@@ -104,23 +112,39 @@ table {
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     border-collapse: collapse;
+    max-width: 95%;
 }
 
 table th {
     background-color: #4b2e2e;
     color: white;
-    padding: 12px;
+    padding: 10px;
+    font-size: 14px;
 }
 
 table td {
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     border-top: 1px solid #eee;
+    font-size: 14px;
+}
+
+/* Envolver la tabla para que se pueda deslizar en celular */
+.tabla-scroll {
+    width: 100%;
+    overflow-x: auto;
+    margin: 20px 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tabla-scroll table {
+    margin: 0 auto;
 }
 
 /* Tarjetas (noticias e ideas) */
 .tarjeta {
     max-width: 500px;
+    width: 90%;
     margin: 20px auto;
     padding: 15px 20px;
     background: white;
@@ -134,39 +158,61 @@ table td {
     padding: 0;
     margin: 10px auto 0 auto;
     background: transparent;
+    width: 100%;
 }
 
-/* Logo flotante (se usa igual en todas las paginas, incluida Inicio) */
+/* Logo flotante */
 .logo-flotante {
     position: fixed;
-    top: 90px;
-    left: 20px;
-    width: 110px;
-    height: 110px;
+    top: 70px;
+    left: 12px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid white;
+    border: 3px solid white;
     box-shadow: 0 2px 10px rgba(0,0,0,0.25);
     z-index: 999;
     animation: flotar 3s ease-in-out infinite;
 }
 
+.logo-home {
+    display: block;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    margin: 20px auto 10px auto;
+    animation: flotar 3s ease-in-out infinite;
+}
+
 @keyframes flotar {
     0% { transform: translateY(0px); }
-    50% { transform: translateY(-15px); }
+    50% { transform: translateY(-12px); }
     100% { transform: translateY(0px); }
+}
+
+/* Banner de inicio */
+.banner-inicio {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    display: block;
 }
 
 /* Pantalla de seleccion Estudiante/Administrador */
 .opciones-inicio {
     text-align: center;
-    margin-top: 30px;
+    margin-top: 20px;
+    padding: 0 15px;
 }
 
 .opciones-inicio a {
     display: inline-block;
     margin: 10px;
-    padding: 15px 30px;
+    padding: 14px 26px;
     background-color: #4b2e2e;
     color: white;
     border-radius: 8px;
@@ -183,15 +229,64 @@ table td {
 .form-mini {
     display: inline-block;
     max-width: none;
-    margin: 0 3px;
+    margin: 3px;
     padding: 0;
     background: transparent;
     box-shadow: none;
     border-radius: 0;
 }
-.banner-inicio {
-    width: 100%;
-    max-height: 350px;
-    object-fit: cover;
-    display: block;
+
+.form-mini button {
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+/* Ajustes especificos para celular */
+@media (max-width: 600px) {
+    nav {
+        justify-content: center;
+        padding: 10px;
+    }
+
+    nav a {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .logo-flotante {
+        width: 55px;
+        height: 55px;
+        top: 60px;
+        left: 8px;
+    }
+
+    .logo-home {
+        width: 90px;
+        height: 90px;
+    }
+
+    h1 {
+        font-size: 1.3em;
+    }
+
+    form {
+        width: 92%;
+        padding: 15px;
+    }
+
+    table th,
+    table td {
+        padding: 6px;
+        font-size: 12px;
+    }
+
+    table img {
+        width: 60px !important;
+    }
+
+    .form-mini button {
+        padding: 6px 8px;
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
 }
